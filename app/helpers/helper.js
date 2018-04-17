@@ -1,4 +1,5 @@
 'use strict';
+const constants = require ('app/config/constants.js');
 
 let helper = {
     
@@ -14,7 +15,18 @@ let helper = {
             status:'error',
             message: errorMessage
         });
-    }
+    },
+    parseUser: (data)=>{
+        var userData = {
+            id: data._id,
+            firstname: data.firstname,
+            lastname: data.lastname,
+            phone: data.phone,
+            email: data.email
+        }
+
+        return userData;
+    },
 }
 
 module.exports = helper; 

@@ -6,8 +6,6 @@ services:
     build: .
     ports:
      - "9999"
-    volumes:
-     - .:/src
     networks: 
       - network
 
@@ -18,6 +16,10 @@ services:
       - "27017:27017"
     networks: 
       - network
+    volumes:
+      # So we can start off with data in our db
+      - .data:/data/db
+
 networks:
     network:
         driver: bridge

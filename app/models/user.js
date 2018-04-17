@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const mongooseStringQuery = require('mongoose-string-query');
 const timestamps = require('mongoose-timestamp');
 const bcrypt = require ('bcrypt');
-const jwt = require ('jsonwebtoken');
+const config = require ('app/config/config.js')
 
 const UserSchema = new mongoose.Schema(
 	{
@@ -16,14 +16,14 @@ const UserSchema = new mongoose.Schema(
 		lastname: {
 			type: String,
 			required: true,
-        },
-        email: {
-            type: String,
-            required: true,
-        },
-        phone: {
-            type: Number,
-            required: true,
+    },
+		email: {
+				type: String,
+				required: true,
+		},
+		phone: {
+				type: String,
+				required: true,
 		},
 		password: {
 			type: String,
@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema(
 	{ minimize: false }
 );
 
-UserSchema.pre('save', (next) => {
+UserSchema.pre('save', function(next) {
 	var user = this;
 	bcrypt.hash(user.password, 10, function (err, hash){
 	  if (err) {
@@ -43,24 +43,6 @@ UserSchema.pre('save', (next) => {
 	  next();
 	})
   });
-
-UserSchema.methods.isValidPassword = (password) => {
-	bcrypt.compare(data.password, user.password, function (err, result) {
-		return result === true;
-	  });
-};
-
-UserSchema.methods.generateToken = ()=>{
-	var expiry = new Date();
-  expiry.setDate(expiry.getDate() + 7);
-
-  return jwt.sign({
-    _id: this._id,
-    email: this.email,
-    name: this.name,
-    exp: parseInt(expiry.getTime() / 1000),
-  }, "MY_SECRET"); //TODO: Change Secret Value
-};
 
 UserSchema.plugin(timestamps);
 UserSchema.plugin(mongooseStringQuery);

@@ -1,65 +1,41 @@
+'use strict';
+
 const helper = require ('app/helpers/helper.js');
 const Joi = require ('Joi');
 const validator = require('app/models/validator.js');
-const bcrypt = require('bcrypt');
+const constants = require('app/config/constants.js');
 
-/**
- * Model Schema
- */
-const User = require('app/models/user.js');
-
-let authController = {
-    register: (req,res,next) => {
-            if (!req.is('application/json')) {
-                helper.sendError(res, 400, "Expects 'application/json'");
-                return next();
-        }
-        else{
+class authController {
+    constructor( authService){
+        this.authService = authService;
+    }
+    register(req,res,next){
             let data = req.body || {};
 
             const err = Joi.validate(data, validator.registerValidationSchema).error;
             //check if it passed validation
             if(err){
-                helper.sendError(res, 400, err);
-                return next();
-            }
-            console.log("Passed validation tests");
-            
-            //check if user with email already exists
-            var user = User.findOne({email: data.email})
-            if (!user)
-            {
-                console.log(JSON.stringify(user));
-                helper.sendError(res, 400, `Email: ${data.email} already exist`)
+                helper.sendError(res, 400, err.toString());
                 return next();
             }
 
-            user = new User(data);
-            console.log("Creating New User");
-            user.save(function(err) {
-                if (err) {
-                    console.log("Couldn't save user: " + err);
-                    helper.sendError(res, 500, err);
+            //register user using authService
+            this.authService.registerNewUser(data).
+            then(result => {
+                if(result.status === 'error'){
+                    helper.sendError(res, result.code, result.message);
+                }else{
+                    helper.sendSuccess(res, result.data);
                 }
-                else{
-                    console.log("User saved succesfully");
-                    var token = user.generateToken();
-                    //logged in
-                    var data = {
-                        token:  token,
-                        data : user.value
-                    }
-                    helper.sendSuccess(res, data);
-                }
-            });
-            
-            return next();
-        }
-    },
+            }).
+            catch(err => {
+                helper.sendError(res, 500, err.toString());
+            })
+            next();
+    }
 
-    login: (req, res, next) => {
-        console.log("login fired");
-        let data = req.body || {};
+    login(req, res, next){
+        var data = req.body || {};
 
         const err = Joi.validate(data, validator.loginValidationSchema).error;
         //check if it passed validation
@@ -67,30 +43,20 @@ let authController = {
             helper.sendError(res, 400, err);
             return next();
         }
-        console.log("Passed validation tests");
-        
-        User.findOne({ email: data.email }, function(err, user) {
-			if (err) {
-                helper.sendError(res,404, "User with that email doesn't exist");
-                return next();
+        //athenticate user using authServcice
+        this.authService.loginUser(data.email, data.password)
+        .then(result => {
+            if(result.status === 'error'){
+                helper.sendError(res, result.code, result.message);
+            }else{
+                helper.sendSuccess(res, result.data);
             }
-            if (user.isValidPassword){
-                var token = user.generateToken();
-                //logged in
-                var data = {
-                    token:  token,
-                    data : user
-                }
-                helper.sendSuccess(res, data);
-            }
-            else{
-                //invalid password
-                helper.sendError(res, 201, "Invalid Password");
-            }
-			next();
-		});
-    },
+        })
+        .catch(err => {
+            helper.sendError(res, 500, err.toString());
+        });
+        next();
+    }
 }
 
-
-module.exports = authController;
+module.exports = (authService) => new authController(authService);

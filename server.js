@@ -6,15 +6,17 @@
 const config = require('app/config/config.js');
 const restify = require('restify');
 const mongoose = require('mongoose');
-const restifyPlugins = require('restify-plugins');
-//const validator = require('node-restify-validation');
+const serviceLocator = require('app/config/serviceLocator.js');
+const logger = serviceLocator.get('logger');
+
+const restifyPlugins = restify.plugins;
 
 /**
   * Initialize Server
   */
 const server = restify.createServer({
-	name: config.name,
-	version: config.version,
+	name: config.info.name,
+	version: config.info.version,
 });
 
 /**
@@ -35,14 +37,12 @@ server.listen(config.port, () => {
 	const db = mongoose.connection;
 
 	db.on('error', (err) => {
-	    console.error(err);
+	    logger.error(err);
 	    process.exit(1);
 	});
 
 	db.once('open', () => {
-	    require('app/routes/routes.js')(server);
-	    console.log(`Server is listening on port ${config.port}`);
+	    require('app/routes/routes.js')(server, serviceLocator);
+	    logger.info(`Server is listening on port ${config.port}`);
     });
 });
-
-  
