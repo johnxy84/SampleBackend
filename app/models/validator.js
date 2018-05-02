@@ -24,6 +24,12 @@ let validator = {
         password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required()
     }),
 
+    productValidationSchema: Joi.object().keys({
+        title: Joi.string().min(3).max(20).required(),
+        description: Joi.string().min(5).max(100).required(),
+        categoryid: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+    }),
+
 }
 
 module.exports = validator;

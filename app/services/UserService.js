@@ -11,7 +11,7 @@ const User = require('app/models/user.js');
 class UserService {
 
     constructor(logger){
-        this.logger = logger;
+    this.logger = logger;
     }
 
     generatePasswordForUser(userId, password){
@@ -86,8 +86,7 @@ class UserService {
                         status: 'success',
                         user: helper.parseUser(user)
                     })
-                }
-                else{
+                } else{
                     resolve({
                         status: 'error',
                         code: 404,

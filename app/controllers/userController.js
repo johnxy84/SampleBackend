@@ -6,35 +6,45 @@ const validator = require('app/models/validator.js');
 
 class userController {
 
-    constructor (userService){
+    constructor (userService, productService){
         this.userService = userService;
+        this.productService = productService;
     }
 
     getUser(req, res, next) {
         let id = req.params.id || '';
         if (id === ''){
-            helper.sendError(res, 400, constants.INVALID_USERID);
+            helper.sendError(res, 400, constants.INVALID_ID);
             return next();
         }
 
         //check if it's a valid ID before using it, RegExing it against mongoose ObjectId property
         if (!id.match(/^[0-9a-fA-F]{24}$/)) {
             //Invalid object return BAd Request
-            return helper.sendError(res, 400, constants.INVALID_USERID);
+            return helper.sendError(res, 400, constants.INVALID_ID);
         }
         this.userService.getUserData(id).
         then((result)=>{
             if(result.status === 'error')
             {
                 helper.sendError(res, result.code, result.message);
-            }else{
-                helper.sendSuccess(res, result.user);
+            } else {
+                //get user's Products
+
+                this.productService.getProductsByUserId(id)
+                .then(productsData => {
+                    result.user.products = productsData.products;
+                    helper.sendSuccess(res, result.user);
+                })
+                .catch(err => {
+                    helper.sendError(res, 500, err.toString());
+                })
             }
-        }).
-        catch((err)=>{
+        })
+        .catch((err)=>{
             helper.sendError(res, 500, err.toString());
         });
-        next()
+        next();
     }
     
     updateUser (req, res, next){
@@ -42,14 +52,14 @@ class userController {
         let data = req.body || {};
 
         if (id === ''){
-            helper.sendError(res, 400, constants.INVALID_USERID);
+            helper.sendError(res, 400, constants.INVALID_ID);
             return next();
         }
 
         //check if it's a valid ID before using it, RegExing it against mongoose ObjectId property
         if (!id.match(/^[0-9a-fA-F]{24}$/)) {
             //Invalid object return Bad Request
-            return helper.sendError(res, 400, constants.INVALID_USERID);
+            return helper.sendError(res, 400, constants.INVALID_ID);
         }
 
         //call userservice to update User
@@ -72,14 +82,14 @@ class userController {
         let id = req.params.id || '';
 
         if (id === ''){
-            helper.sendError(res, 400, constants.INVALID_USERID);
+            helper.sendError(res, 400, constants.INVALID_ID);
             return next();
         }
 
         //check if it's a valid ID before using it, RegExing it against mongoose ObjectId property
         if (!id.match(/^[0-9a-fA-F]{24}$/)) {
             //Invalid object return Bad Request
-            return helper.sendError(res, 400, constants.INVALID_USERID);
+            return helper.sendError(res, 400, constants.INVALID_ID);
         }
 
         //call service to delete user
@@ -113,7 +123,7 @@ class userController {
         let data = req.body || {};
 
         if (id === ''){
-            helper.sendError(res, 400, constants.INVALID_USERID);
+            helper.sendError(res, 400, constants.INVALID_ID);
             return next();
         }
 
@@ -127,7 +137,7 @@ class userController {
         //check if it's a valid ID before using it, RegExing it against mongoose ObjectId property
         if (!id.match()) {
             //Invalid object return Bad Request
-            helper.sendError(res, 400, constants.INVALID_USERID);
+            helper.sendError(res, 400, constants.INVALID_ID);
             return next();
         }
         //generate new password hash

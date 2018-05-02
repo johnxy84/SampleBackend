@@ -27,6 +27,21 @@ let helper = {
 
         return userData;
     },
+
+    parseProduct: (productData)=>{
+        var product = {
+            id: productData._id,
+            title: productData.title,
+            description: productData.description,
+            ownerid: productData.ownerid,
+            categoryname: productData.categoryname,
+            categoryid: productData.categoryid,
+            createdAt: productData.createdAt,
+            updatedAt: productData.updatedAt
+        }
+
+        return product;
+    },
 }
 
 module.exports = helper; 

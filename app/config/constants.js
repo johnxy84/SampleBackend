@@ -6,7 +6,10 @@ const constants = {
     INVALID_PASSWORD : "Invalid Password for Account",
     SERVER_ERROR : "There was an issue processing your request",
     BAD_REQUEST: "Bad Request body",
-    INVALID_USERID: "Invalid UserId"
+    INVALID_ID: "Invalid Id",
+    CATEGORY_NOT_FOUND: "Category not found",
+    PRODUCT_NOT_FOUND: "Product not found",
+    INAVLID_SEARCH_PARAMS: "Search parameter cannot be empty"
 }; 
 
 module.exports =  constants;

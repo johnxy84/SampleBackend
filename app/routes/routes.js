@@ -4,11 +4,10 @@ const constants = require('app/config/constants.js');
 const jwt = require('jsonwebtoken');
 const config = require('app/config/config.js');
 
+const Router = require('restify-router').Router;
+const router = new Router();
+
 module.exports = function(server, serviceLocator) {
-
-	let authController = serviceLocator.get('authController');
-	let userController = serviceLocator.get('userController');
-
 
 	let authMiddleWare = (req, res, next)=>{
 		if (req.method !== 'GET' && !req.is('application/json')) {
@@ -27,7 +26,7 @@ module.exports = function(server, serviceLocator) {
 					return helper.sendError(res, 400, "Couldn't authenticate token"); 
 				} else {
 					// if everything is good, save to request for use in other routes
-					res.token = decodedToken
+					res.tokenData = decodedToken
 					next();
 				}
 			});
@@ -36,57 +35,21 @@ module.exports = function(server, serviceLocator) {
 			return helper.sendError(res, 400, 'No token provided');
 		}
 	}
-	/**
-	 * Create a User
-	 */
-	server.post('/auth/register', (req, res, next) => {
-		authController.register(req, res, next)
-	});
-
-	/**
-	 * Login user
-	 */
-	server.post('/auth/login', (req, res, next) => {
-		authController.login(req, res, next);
-	});
-
-	/**
-	 * Get single User Detail
-	 */
-	server.get('/users/:id', authMiddleWare, (req, res, next) => {
-		userController.getUser(req, res, next);
-	});
-
-	/**
-	 * Gets all Users
-	 */
-	server.get('/users', authMiddleWare, (req, res, next) => {
-		userController.getUsers(req, res, next);
-	});
 	
-	/**
-	 * Updates a user
-	 */
-	server.put('/users/:id', authMiddleWare, (req, res, next) => {
-		userController.updateUser(req, res, next);
-	});
+	let userRoute = require('app/routes/userRoute.js')(serviceLocator, authMiddleWare);
+	let authRoute = require('app/routes/authRoute.js')(serviceLocator);
+	let productRoute = require('app/routes/productRoute.js')(serviceLocator, authMiddleWare);
+	let categoryRoute = require('app/routes/categoryRoute.js')(serviceLocator, authMiddleWare);
 
-	/**
-	 * Resets a user password
-	 */
-	server.post('/user/resetpassword/:id', authMiddleWare, (req, res, next) => {
-		userController.resetPassword(req, res, next);
-	});
-
-	/**
-	 * Delete a user's account
-	 */
-	server.del('/users/delete:id', authMiddleWare, (req, res, next) => {
-		userController.deleteUser(req, res, next);
-	});
-
-	server.get('/v1', (req, res, next)=>{ 
+	router.add('/categories', categoryRoute);
+	router.add('/products', productRoute);
+	router.add('/users', userRoute);
+	router.add('/auth', authRoute);
+	
+	router.get('/v1', (req, res, next)=>{ 
 		res.send(config.info);
 		next();
 	});
+
+	router.applyRoutes(server);
 };    

@@ -6,7 +6,7 @@
 const config = require('app/config/config.js');
 const restify = require('restify');
 const mongoose = require('mongoose');
-const serviceLocator = require('app/config/serviceLocator.js');
+const serviceLocator = require('app/config/di.js');
 const logger = serviceLocator.get('logger');
 
 const restifyPlugins = restify.plugins;
@@ -42,7 +42,7 @@ server.listen(config.port, () => {
 	});
 
 	db.once('open', () => {
-	    require('app/routes/routes.js')(server, serviceLocator);
+			require('app/routes/routes.js')(server, serviceLocator);
 	    logger.info(`Server is listening on port ${config.port}`);
     });
 });

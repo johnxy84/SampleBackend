@@ -4,27 +4,30 @@ const mongoose = require('mongoose');
 const mongooseStringQuery = require('mongoose-string-query');
 const timestamps = require('mongoose-timestamp');
 const bcrypt = require ('bcrypt');
+const searchPlugin = require('mongoose-search-plugin');
 
-const UserSchema = new mongoose.Schema(
+const ProductSchema = new mongoose.Schema(
 	{
-		firstname: {
+		title: {
+			
 			type: String,
 			required: true,
 			trim: true,
 		},
-		lastname: {
+		description: {
 			type: String,
 			required: true,
+			trim: true
     },
-		email: {
+		ownerid: {
 				type: String,
 				required: true,
 		},
-		phone: {
+		categoryid: {
 				type: String,
 				required: true,
 		},
-		password: {
+		categoryname: {
 			type: String,
 			required: true
 		}
@@ -32,19 +35,11 @@ const UserSchema = new mongoose.Schema(
 	{ minimize: false }
 );
 
-UserSchema.pre('save', function(next) {
-	var user = this;
-	bcrypt.hash(user.password, 10, function (err, hash){
-	  if (err) {
-		return next(err);
-	  }
-	  user.password = hash;
-	  next();
-	})
+ProductSchema.plugin(timestamps);
+ProductSchema.plugin(mongooseStringQuery);
+ProductSchema.plugin(searchPlugin,  {
+    fields: ['title', 'description', 'categoryname']
   });
 
-UserSchema.plugin(timestamps);
-UserSchema.plugin(mongooseStringQuery);
-
-const User = mongoose.model('User', UserSchema);
-module.exports = User;
+const Product = mongoose.model('Product', ProductSchema);
+module.exports = Product;
